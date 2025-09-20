@@ -4,6 +4,7 @@ import random
 import re
 import sys
 import time
+
 app = Flask(__name__)
 
 facts = [
@@ -125,6 +126,9 @@ def evaluate_expression(expr):
         
     if expr.strip() == "10+ 9":
         return "Result: 21"
+        
+        if expr.strip() == "67":
+  return "want mustard with your mangoes?"
 
     try:
         result = eval(expr, {"__builtins__": None}, {
@@ -160,19 +164,6 @@ def simulate_lag():
         lines.append(line)
     lines.append("💀 System compromised... Just kidding. Back to math! ")
     return "\n".join(lines)
-
-
-
-
-@app.route("/", methods=["GET", "POST"])
-def index():
-    output = ""
-    if request.method == "POST":
-        user_input = request.form.get("command", "").strip().lower()
-            
-    from flask import Flask, request, render_template_string, redirect
-
-app = Flask(__name__)
 
 html_template = """
 <!DOCTYPE html>
