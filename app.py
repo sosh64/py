@@ -4,7 +4,6 @@ import random
 import re
 import sys
 import time
-from flask import Flask, request, render_template_string, redirect
 app = Flask(__name__)
 
 facts = [
@@ -193,11 +192,7 @@ def index():
     output = ""
     if request.method == "POST":
         user_input = request.form.get("command", "").strip().lower()
-        if user_input == "67":
-            return redirect("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
-        else:
-            output = f"You typed: {user_input}"
-    return render_template_string(html_template, output=output)
+       
         if user_input == "/q":
             output = "Session cleared."
         elif user_input == "/f":
