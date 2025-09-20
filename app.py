@@ -4,7 +4,7 @@ import random
 import re
 import sys
 import time
-
+from flask import Flask, request, render_template_string, redirect
 app = Flask(__name__)
 
 facts = [
@@ -162,7 +162,8 @@ def simulate_lag():
     lines.append("💀 System compromised... Just kidding. Back to math! ")
     return "\n".join(lines)
 
-from flask import Flask, request, render_template_string, redirect
+
+
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -170,9 +171,33 @@ def index():
     if request.method == "POST":
         user_input = request.form.get("command", "").strip().lower()
             
-    elif user_input == "67":
-         return redirect("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
-        
+    from flask import Flask, request, render_template_string, redirect
+
+app = Flask(__name__)
+
+html_template = """
+<!DOCTYPE html>
+<html>
+  <body>
+    <form method="POST">
+      <input type="text" name="command" placeholder="Type something" />
+      <button type="submit">Go</button>
+    </form>
+    <div>{{ output }}</div>
+  </body>
+</html>
+"""
+
+@app.route("/", methods=["GET", "POST"])
+def index():
+    output = ""
+    if request.method == "POST":
+        user_input = request.form.get("command", "").strip().lower()
+        if user_input == "67":
+            return redirect("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+        else:
+            output = f"You typed: {user_input}"
+    return render_template_string(html_template, output=output)
         if user_input == "/q":
             output = "Session cleared."
         elif user_input == "/f":
