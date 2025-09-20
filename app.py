@@ -54,12 +54,13 @@ html_template = """
 <body>
     <h1>Python Calculator</h1>
     <div class="info">
-        Commands: btw made by Giego <br>
+        Commands:<br>
         <b>/q</b> - Quit (clears output)<br>
         <b>/f</b> - Random math fact<br>
         <b>/e</b> - Random math equation<br>
         <b>/n</b> - Random number<br>
-        Try 'potato' or 'lag' for easter eggs!
+        Try 'potato' or 'lag' for easter eggs!<br>
+        <b>this was made by Giego :D</b>
     </div>
     <div id="output">{{ output }}</div>
     <form method="POST">
