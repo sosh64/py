@@ -114,6 +114,9 @@ def evaluate_expression(expr):
     expr = expr.replace('x', '*')
     expr = re.sub(r'(\d+(\.\d+)?)\s*%', r'(\1/100)', expr)
     expr = handle_power(expr)
+      # Easter egg for 10 + 9 = 21
+    if expr.strip() == "10 + 9":
+        return "Result: 21"
 
     try:
         result = eval(expr, {"__builtins__": None}, {
