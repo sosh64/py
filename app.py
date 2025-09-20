@@ -145,7 +145,7 @@ def simulate_lag():
     lines = []
     for line in fake_data:
         lines.append(line)
-    lines.append("💀 System compromised... Just kidding. Back to math! 😄")
+    lines.append("💀 System compromised... Just kidding. Back to math! ")
     return "\n".join(lines)
 
 @app.route("/", methods=["GET", "POST"])
