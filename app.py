@@ -59,6 +59,7 @@ html_template = """
         <b>/f</b> - Random math fact<br>
         <b>/e</b> - Random math equation<br>
         <b>/n</b> - Random number<br>
+        <q> check out my tiktok for easter eggs!<q>
         <b>this was made by Giego :D</b>
     </div>
     <div id="output">{{ output }}</div>
