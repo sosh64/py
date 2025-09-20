@@ -169,11 +169,7 @@ def index():
         user_input = request.form.get("command", "").strip().lower()
             
     elif user_input == "67":
-        return render_template_string("""
-        <script>
-            window.location.href = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
-        </script>
-        """)
+         return redirect("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
         
         if user_input == "/q":
             output = "Session cleared."
