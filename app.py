@@ -4,7 +4,6 @@ import random
 import re
 import sys
 import time
-from flask import Flask, request, render_template_string, redirect
 
 app = Flask(__name__)
 
@@ -162,6 +161,8 @@ def simulate_lag():
         lines.append(line)
     lines.append("💀 System compromised... Just kidding. Back to math! ")
     return "\n".join(lines)
+
+from flask import Flask, request, render_template_string, redirect
 
 @app.route("/", methods=["GET", "POST"])
 def index():
