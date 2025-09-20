@@ -54,7 +54,7 @@ html_template = """
 <body>
     <h1>Python Calculator</h1>
     <div class="info">
-        Commands:<br>
+        Commands: btw made by Giego <br>
         <b>/q</b> - Quit (clears output)<br>
         <b>/f</b> - Random math fact<br>
         <b>/e</b> - Random math equation<br>
