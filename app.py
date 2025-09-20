@@ -167,7 +167,8 @@ def index():
     output = ""
     if request.method == "POST":
         user_input = request.form.get("command", "").strip().lower()
-            elif user_input == "67":
+            
+    elif user_input == "67":
         return render_template_string("""
         <script>
             window.location.href = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
