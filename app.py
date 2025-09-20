@@ -41,6 +41,7 @@ html_template = """
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Python Calculator</title>
     <style>
         body { font-family: monospace, monospace; background: #f5f5f5; padding: 20px; max-width: 600px; margin: auto; }
