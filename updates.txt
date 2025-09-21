@@ -1,5 +1,5 @@
 Update 4 - update log
-Added the update log.
+Added the update log and also added /credit.
 Date: 2025-09-21
 
 Update 3 - 67 Easter Egg 😈
