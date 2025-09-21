@@ -45,17 +45,17 @@ html_template = """<!DOCTYPE html>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html,body { height:100%; width:100%; font-family: monospace, monospace; background:#f5f5f5; display:flex; justify-content:center; align-items:flex-start; padding:20px; }
     .container { width:100%; max-width:600px; background:#fff; padding:20px; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.1); position:relative; }
-    h1 { text-align:center; color:#333; margin-bottom:20px; }
-    .info { font-size:0.9em; color:#666; margin-bottom:15px; line-height:1.4; }
-    .output-wrap { position:relative; margin-bottom:15px; }
-    #output { white-space: pre-wrap; background:#f9f9f9; border:1px solid #ddd; padding:10px; height:200px; overflow-y:auto; border-radius:4px; }
+    h1 { text-align:center; color:#333; margin-bottom:18px; }
+    .info { font-size:0.9em; color:#666; margin-bottom:12px; line-height:1.4; word-break: break-word; } /* allow wrapping */
+    .output-wrap { position:relative; margin-bottom:12px; }
+    #output { white-space: pre-wrap; background:#f9f9f9; border:1px solid #ddd; padding:12px; height:200px; overflow-y:auto; border-radius:6px; }
     .output-pin-btn {
       position:absolute;
       right:10px;
       bottom:10px;
       background:#000;
       color:#fff;
-      display:none;
+      display:none; /* shown on mobile via media query */
       align-items:center;
       justify-content:center;
       gap:8px;
@@ -67,21 +67,26 @@ html_template = """<!DOCTYPE html>
     }
     .output-pin-btn svg { stroke: white; }
 
-    .command-row { display:flex; gap:10px; }
-    input[type=text] { padding:12px; font-size:1.1em; border:1px solid #ccc; border-radius:4px; flex:1; }
-    button { padding:12px; font-size:1em; border:none; border-radius:4px; background-color:#4CAF50; color:white; cursor:pointer; }
-    button:hover { background-color:#45a049; }
+    /* Command area: input + inline updates button to the right (desktop) */
+    .command-area { margin-top: 0; }
+    .command-row { display:flex; gap:10px; align-items:center; }
+    .command-row input[type=text] { padding:12px; font-size:1.05em; border:1px solid #ccc; border-radius:6px; flex:1; }
+    .link-button { background:#000; color:#fff; display:flex; align-items:center; justify-content:center; gap:8px; padding:10px 12px; border-radius:6px; text-decoration:none; font-size:0.95em; min-width:48px; }
+    .link-button svg { stroke:white; }
+    .link-button:hover { background:#222; }
 
-    .link-button {
-      background:#000; color:#fff; display:flex; align-items:center; justify-content:center; gap:8px; padding:12px 16px; border-radius:4px; text-decoration:none; font-size:1em;
-    }
-    .link-button:hover { background:#333; }
-    .link-button svg { stroke: white; }
+    /* Calculate button sits under the input, full-width */
+    .calc-button { margin-top:10px; width:100%; padding:12px; font-size:1em; border:none; border-radius:6px; background:#4CAF50; color:white; cursor:pointer; }
+    .calc-button:hover { background:#45a049; }
 
+    /* Mobile: hide inline updates button, show pinned button inside output box */
     @media (max-width:768px) {
       .command-row .link-button { display:none; }
       .output-pin-btn { display:flex; }
     }
+
+    /* Small visual helpers */
+    .small-note { display:block; margin-top:8px; color:#444; font-size:0.95em; word-break:break-word; }
   </style>
 </head>
 <body>
@@ -93,14 +98,14 @@ html_template = """<!DOCTYPE html>
       <b>/f</b> - Random math fact<br>
       <b>/e</b> - Random math equation<br>
       <b>/n</b> - Random number<br>
-      more:<br>
-      Check out my TikTok for easter eggs!<br>
-      <b>Made by Giego :D</b>
+      <b>/b</b> - Space beach<br>
+      <span class="small-note">Check out my TikTok for easter eggs! Made by Giego :D</span>
     </div>
 
     <div class="output-wrap">
       <div id="output">{{ output|safe or "Welcome to Python Calculator!" }}</div>
 
+      <!-- pinned to bottom-right of the result box (mobile) -->
       <a href="{{ url_for('updates') }}" class="output-pin-btn" aria-label="View update logs">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <polyline points="23 4 23 10 17 10"></polyline>
@@ -111,19 +116,21 @@ html_template = """<!DOCTYPE html>
       </a>
     </div>
 
-    <form method="POST" class="command-row">
-      <input type="text" name="command" autofocus autocomplete="off" placeholder="Enter command or expression" />
-      <button type="submit">Calculate</button>
+    <form method="POST" class="command-area" onsubmit="return true;">
+      <div class="command-row">
+        <input type="text" name="command" autofocus autocomplete="off" placeholder="Enter command or expression" />
+        <!-- inline updates button for desktop -->
+        <a href="{{ url_for('updates') }}" class="link-button" title="View update logs" aria-label="View update logs">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0114.36-3.36L23 10"></path>
+            <path d="M20.49 15a9 9 0 01-14.36 3.36L1 14"></path>
+          </svg>
+        </a>
+      </div>
 
-      <a href="{{ url_for('updates') }}" class="link-button" title="View update logs" aria-label="View update logs">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <polyline points="23 4 23 10 17 10"></polyline>
-          <polyline points="1 20 1 14 7 14"></polyline>
-          <path d="M3.51 9a9 9 0 0114.36-3.36L23 10"></path>
-          <path d="M20.49 15a9 9 0 01-14.36 3.36L1 14"></path>
-        </svg>
-        Updates
-      </a>
+      <button type="submit" class="calc-button">Calculate</button>
     </form>
 
     {% if audio %}
@@ -139,6 +146,7 @@ html_template = """<!DOCTYPE html>
 </html>
 """
 
+# ---------- Calculator helpers (kept from your original) ----------
 def random_math_fact():
     return random.choice(facts)
 
@@ -166,8 +174,7 @@ def random_number():
 def handle_power(expression):
     while '^' in expression:
         match_pow = re.search(r'(\d+(\.\d+)?|\([^()]+\))\s*\^\s*(\d+(\.\d+)?|\([^()]+\))', expression)
-        if not match_pow:
-            break
+        if not match_pow: break
         base = match_pow.group(1)
         exponent = match_pow.group(3)
         replacement = f'pow({base}, {exponent})'
@@ -204,25 +211,31 @@ def simulate_lag():
     lines = fake_data + ["💀 System compromised... Just kidding. Back to math! "]
     return "\n".join(lines)
 
+# ---------- Routes ----------
 @app.route("/", methods=["GET", "POST"])
 def index():
     output, audio = "", None
     if request.method == "POST":
-        user_input = request.form.get("command", "").strip().lower()
+        user_input = request.form.get("command", "").strip()
+        # normalized lower-only checks reserved for command keywords except math
+        cmd_lower = user_input.lower()
 
-        if user_input == "/q":
+        if cmd_lower == "/q":
             output = "Session cleared."
-        elif user_input == "/f":
+        elif cmd_lower == "/f":
             output = random_math_fact()
-        elif user_input == "/e":
+        elif cmd_lower == "/e":
             output = random_math_equation()
-        elif user_input == "/n":
+        elif cmd_lower == "/n":
             output = str(random_number())
-        elif user_input == "potato":
+        elif cmd_lower == "/b":
+            # Space beach response (you can expand)
+            output = "🏖️ Welcome to Space Beach — sand, stars, and silly math vibes!"
+        elif cmd_lower == "potato":
             output = "🥔 You've unlocked the secret potato! May your calculations be crispy and golden."
-        elif user_input == "lag":
+        elif cmd_lower == "lag":
             output = simulate_lag()
-        elif user_input == "67":
+        elif cmd_lower == "67":
             audio = url_for('static', filename='rickroll.mp3.m4a')
             output = """
             <button onclick="playRickroll()" 
@@ -232,20 +245,8 @@ def index():
             </button>
             """
         else:
-            if user_input.startswith('x=') or user_input.startswith('x ='):
-                try:
-                    rhs = user_input.split('=')[1].strip()
-                    x_val = eval(rhs, {"__builtins__": None}, {
-                        "sin": math.sin, "cos": math.cos, "tan": math.tan,
-                        "sqrt": math.sqrt, "log": math.log, "log10": math.log10,
-                        "factorial": math.factorial, "pow": pow,
-                        "pi": math.pi, "e": math.e, "__name__": "__main__"
-                    })
-                    output = f"x = {x_val}"
-                except Exception as e:
-                    output = f"Error: {e}"
-            else:
-                output = evaluate_expression(user_input)
+            # treat as expression (case-insensitive function names allowed)
+            output = evaluate_expression(user_input)
 
     return render_template_string(html_template, output=output, audio=audio)
 
