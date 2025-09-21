@@ -51,19 +51,23 @@ html_template = """
         }
 
         html, body {
-            width: 100%;
             height: 100%;
-            background: #f5f5f5;
+            width: 100%;
             font-family: monospace, monospace;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px;
         }
 
         .container {
+            width: 100%;
             max-width: 600px;
-            margin: 40px auto;
-            padding: 20px;
             background: #ffffff;
+            padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
         h1 {
@@ -84,10 +88,14 @@ html_template = """
             background: #f9f9f9;
             border: 1px solid #ddd;
             padding: 10px;
-            height: 250px;
+            height: 200px;
             overflow-y: auto;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             border-radius: 4px;
+        }
+
+        form {
+            margin-top: 0;
         }
 
         input[type=text] {
@@ -99,7 +107,6 @@ html_template = """
         }
 
         button {
-            display: block;
             width: 100%;
             margin-top: 10px;
             padding: 12px;
@@ -119,18 +126,19 @@ html_template = """
 <body>
     <div class="container">
         <h1>Python Calculator</h1>
+
         <div class="info">
             <strong>Commands:</strong><br>
             <b>/q</b> - Quit (clears output)<br>
             <b>/f</b> - Random math fact<br>
             <b>/e</b> - Random math equation<br>
-            <b>/n</b> - Random number<br>
-            <br>
-            More:<br>
-            Check out my TikTok for Easter eggs!<br>
+            <b>/n</b> - Random number<br><br>
+            Check out my TikTok for easter eggs!<br>
             <b>Made by Giego :D</b>
         </div>
-        <div id="output">{{ output }}</div>
+
+        <div id="output">{{ output or "Welcome to Python Calculator!" }}</div>
+
         <form method="POST">
             <input type="text" name="command" autofocus autocomplete="off" placeholder="Enter command or expression" />
             <button type="submit">Calculate</button>
@@ -139,6 +147,7 @@ html_template = """
 </body>
 </html>
 """
+
 
 
 def random_math_fact():
