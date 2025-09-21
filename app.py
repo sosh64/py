@@ -312,5 +312,5 @@ def index():
     return render_template_string(html_template, output=output)
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', por=8000)
+    app.run(host='0.0.0.0', port=8000)
     
