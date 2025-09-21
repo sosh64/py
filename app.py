@@ -12,11 +12,11 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key-change-me")
 
 # ---------- Globals ----------
-GLOBAL_MESSAGE = []       # list of {"sender","text","type"}
-ONLINE_USERS = {}         # sid -> last_seen
-GUEST_ADMINS = set()      # session sid set
+GLOBAL_MESSAGE = []     # list of dicts: {"sender","text","type"}
+ONLINE_USERS = {}       # sid -> last_seen timestamp
+GUEST_ADMINS = set()    # set of session sids
 
-# ---------- Facts ----------
+# ---------- Content ----------
 facts = [
     "Zero is the only number that can't be represented in Roman numerals.",
     "A circle has infinite lines of symmetry.",
@@ -46,7 +46,7 @@ facts = [
     "An ellipse is the set of points where the sum of distances to two foci is constant."
 ]
 
-# ---------- HTML (with locked Update Logs button) ----------
+# ---------- HTML template (responsive Update Logs button) ----------
 html_template = """<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -56,44 +56,52 @@ html_template = """<!DOCTYPE html>
   <style>
     * { box-sizing: border-box; margin:0; padding:0; }
     html,body { font-family:monospace,monospace; background:#f5f5f5;
-                display:flex; justify-content:center; align-items:flex-start; padding:20px; height:100%; }
+                display:flex; justify-content:center; align-items:flex-start; padding:20px; min-height:100vh; }
     .container { width:100%; max-width:650px; background:#fff; padding:20px;
-                 border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.1); position:relative; }
-    h1 { text-align:center; color:#333; margin-bottom:18px; }
+                 border-radius:10px; box-shadow:0 6px 20px rgba(0,0,0,0.08); position:relative; }
+    h1 { text-align:center; color:#333; margin-bottom:16px; }
     .info { font-size:0.9em; color:#444; margin-bottom:12px; line-height:1.5; }
-    #output { white-space:pre-wrap; background:#f9f9f9; border:1px solid #ddd;
-              padding:12px; height:200px; overflow-y:auto; border-radius:6px; margin-bottom:12px; }
-    input[type=text] { width:100%; padding:12px; font-size:1.05em;
-                       border:1px solid #ccc; border-radius:6px; }
-    button { margin-top:10px; width:100%; padding:12px; font-size:1em; border:none;
-             border-radius:6px; background:#4CAF50; color:white; cursor:pointer; }
-    button:hover { background:#45a049; }
-    .global-message { margin-top:6px; padding:6px; border-radius:4px; font-weight:bold; }
-    .gm-owner { color:green; }
-    .gm-guest { color:blue; }
+    .output-wrap { position:relative; margin-bottom:12px; }
+    #output { white-space:pre-wrap; background:#f9f9f9; border:1px solid #e6e6e6; padding:12px; height:200px; overflow-y:auto; border-radius:8px; }
+    .command-area { margin-top:0; }
+    .command-row { display:flex; gap:10px; align-items:center; }
+    .command-row input[type=text] { padding:12px; font-size:1.02em; border:1px solid #ccc; border-radius:8px; flex:1; }
+    .link-button { background:#000; color:#fff; display:flex; align-items:center; justify-content:center; padding:10px 12px; border-radius:8px; text-decoration:none; font-size:0.95em; box-shadow:0 4px 12px rgba(0,0,0,0.08); }
+    .link-button svg { stroke:white; }
+    .link-button:hover, .output-pin-btn:hover { background:#222; }
+    .calc-button { margin-top:10px; width:100%; padding:12px; font-size:1em; border:none; border-radius:8px; background:#4CAF50; color:white; cursor:pointer; box-shadow: 0 4px 12px rgba(76,175,80,0.18); }
+    .calc-button:hover { background:#45a049; }
 
-    /* LOCKED update logs button: always visible inside container, bottom-right */
-    .update-logs-btn {
-      position: absolute;
-      right: 16px;
-      bottom: 16px;
+    /* pinned button inside output for mobile */
+    .output-pin-btn {
+      position:absolute;
+      right:10px;
+      bottom:10px;
       background:#000;
       color:#fff;
-      display:flex;
+      display:none; /* shown only on small screens */
       align-items:center;
       justify-content:center;
-      gap:8px;
-      padding:8px 12px;
-      border-radius:6px;
+      padding:8px;
+      border-radius:10px;
       text-decoration:none;
       font-size:0.95em;
-      box-shadow:0 2px 8px rgba(0,0,0,0.12);
+      box-shadow:0 6px 18px rgba(0,0,0,0.12);
     }
-    .update-logs-btn svg { stroke: white; }
-    .update-logs-btn:hover { background:#222; }
+    .output-pin-btn svg { stroke:white; width:18px; height:18px; }
 
-    /* small note */
-    .small-note { display:block; margin-top:8px; color:#444; font-size:0.95em; }
+    /* show inline on desktop next to input, hide on mobile */
+    @media (max-width:768px) {
+      .command-row .link-button { display:none; }
+      .output-pin-btn { display:flex; }
+    }
+
+    /* global messages */
+    .global-message { margin-top:8px; padding:8px; border-radius:6px; font-weight:600; }
+    .gm-owner { color:#1b5e20; background:#e8f5e9; }
+    .gm-guest { color:#0d47a1; background:#e8f0ff; }
+
+    .small-note { display:block; margin-top:8px; color:#666; font-size:0.92em; }
   </style>
 </head>
 <body>
@@ -102,14 +110,27 @@ html_template = """<!DOCTYPE html>
 
     <div class="info">
       <strong>Commands:</strong><br>
-      <b>/q</b> - Quit (clear output)<br>
+      <b>/credit</b> - Show credits<br>
+      <b>/q</b> - Quit (clears output)<br>
       <b>/f</b> - Random math fact<br>
       <b>/e</b> - Random math equation<br>
       <b>/n</b> - Random number<br>
-      <span class="small-note">More commands are hidden as easter eggs (potato, lag, 10+9, 67). Made by Giego :D</span>
+      <span class="small-note">More commands and easter eggs are hidden — try them out! Made by Giego :D</span>
     </div>
 
-    <div id="output">{{ output|safe or "Welcome to Python Calculator!" }}</div>
+    <div class="output-wrap">
+      <div id="output">{{ output|safe or "Welcome to Python Calculator!" }}</div>
+
+      <!-- pinned button (mobile) - shows inside output box bottom-right -->
+      <a href="{{ url_for('updates') }}" class="output-pin-btn" aria-label="View update logs">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <polyline points="1 20 1 14 7 14"></polyline>
+          <path d="M3.51 9a9 9 0 0114.36-3.36L23 10"></path>
+          <path d="M20.49 15a9 9 0 01-14.36 3.36L1 14"></path>
+        </svg>
+      </a>
+    </div>
 
     {% if global_messages %}
       {% for gm in global_messages %}
@@ -117,22 +138,21 @@ html_template = """<!DOCTYPE html>
       {% endfor %}
     {% endif %}
 
-    <form method="POST" autocomplete="off">
-      <input type="text" name="command" autofocus autocomplete="off" placeholder="Enter command or expression" />
-      <button type="submit">Calculate</button>
+    <form method="POST" class="command-area" autocomplete="off">
+      <div class="command-row">
+        <input type="text" name="command" autofocus autocomplete="off" placeholder="Enter command or expression" />
+        <!-- desktop inline button -->
+        <a href="{{ url_for('updates') }}" class="link-button" title="View update logs" aria-label="View update logs">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0114.36-3.36L23 10"></path>
+            <path d="M20.49 15a9 9 0 01-14.36 3.36L1 14"></path>
+          </svg>
+        </a>
+      </div>
+      <button type="submit" class="calc-button">Calculate</button>
     </form>
-
-    <!-- locked update logs button: always visible bottom-right inside container -->
-    <a href="{{ url_for('updates') }}" class="update-logs-btn" aria-label="View update logs">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-           stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <polyline points="23 4 23 10 17 10"></polyline>
-        <polyline points="1 20 1 14 7 14"></polyline>
-        <path d="M3.51 9a9 9 0 0114.36-3.36L23 10"></path>
-        <path d="M20.49 15a9 9 0 01-14.36 3.36L1 14"></path>
-      </svg>
-      Update Logs
-    </a>
 
     {% if audio %}
       <audio id="rickroll" preload="none">
@@ -142,7 +162,7 @@ html_template = """<!DOCTYPE html>
         function playRickroll(){
           const a = document.getElementById("rickroll");
           if(!a) return;
-          a.play().catch(()=> a.setAttribute("controls","true"));
+          a.play().catch(() => a.setAttribute("controls", "true"));
         }
       </script>
     {% endif %}
@@ -151,8 +171,7 @@ html_template = """<!DOCTYPE html>
 </html>
 """
 
-# ---------- Safe math evaluator (AST-based) ----------
-# Allowed binary operators mapping
+# ---------- Safe evaluator (AST-based) ----------
 ALLOWED_BINOPS = {
     ast.Add: op.add,
     ast.Sub: op.sub,
@@ -168,7 +187,6 @@ ALLOWED_UNARYOPS = {
     ast.USub: lambda x: -x,
 }
 
-# Allowed functions (lowercase keys)
 ALLOWED_FUNCS = {
     "sin": math.sin,
     "cos": math.cos,
@@ -197,11 +215,11 @@ def _normalize_power(expr: str) -> str:
 
 
 def _eval_ast(node):
-    if isinstance(node, ast.Constant):  # Python 3.8+
+    if isinstance(node, ast.Constant):
         if isinstance(node.value, (int, float)):
             return node.value
         raise ValueError("Unsupported constant")
-    if isinstance(node, ast.Num):  # older nodes
+    if isinstance(node, ast.Num):
         return node.n
 
     if isinstance(node, ast.BinOp):
@@ -210,7 +228,7 @@ def _eval_ast(node):
         op_type = type(node.op)
         if op_type not in ALLOWED_BINOPS:
             raise ValueError("Operator not allowed")
-        # protect pow/large exponents
+        # protect against huge exponents
         if isinstance(node.op, ast.Pow):
             if isinstance(right, (int, float)) and abs(right) > 1000:
                 raise ValueError("Exponent too large")
@@ -220,19 +238,17 @@ def _eval_ast(node):
         op_t = type(node.op)
         if op_t not in ALLOWED_UNARYOPS:
             raise ValueError("Unary operator not allowed")
-        val = _eval_ast(node.operand)
-        return ALLOWED_UNARYOPS[op_t](val)
+        return ALLOWED_UNARYOPS[op_t](_eval_ast(node.operand))
 
     if isinstance(node, ast.Call):
         if not isinstance(node.func, ast.Name):
             raise ValueError("Only simple function calls allowed")
-        func_name = node.func.id.lower()
-        if func_name not in ALLOWED_FUNCS:
-            raise ValueError(f"Function '{func_name}' not allowed")
-        func = ALLOWED_FUNCS[func_name]
+        fname = node.func.id.lower()
+        if fname not in ALLOWED_FUNCS:
+            raise ValueError(f"Function '{fname}' not allowed")
+        func = ALLOWED_FUNCS[fname]
         args = [_eval_ast(a) for a in node.args]
-        # Factorial safety
-        if func_name == "factorial":
+        if fname == "factorial":
             if len(args) != 1 or not isinstance(args[0], int) or args[0] < 0 or args[0] > 1000:
                 raise ValueError("factorial requires integer 0..1000")
         return func(*args)
@@ -257,10 +273,12 @@ def safe_eval(expr: str):
     except SyntaxError:
         raise ValueError("Syntax error")
 
-    # Small whitelist of allowed node types
-    allowed_nodes = (ast.Expression, ast.BinOp, ast.UnaryOp, ast.Num, ast.Constant,
-                     ast.Call, ast.Name, ast.Load, ast.Add, ast.Sub, ast.Mult,
-                     ast.Div, ast.Mod, ast.Pow, ast.FloorDiv, ast.UAdd, ast.USub)
+    allowed_nodes = (
+        ast.Expression, ast.BinOp, ast.UnaryOp, ast.Num, ast.Constant,
+        ast.Call, ast.Name, ast.Load, ast.Add, ast.Sub, ast.Mult, ast.Div,
+        ast.Mod, ast.Pow, ast.FloorDiv, ast.UAdd, ast.USub
+    )
+
     for node in ast.walk(parsed):
         if not isinstance(node, allowed_nodes):
             raise ValueError("Unsupported expression element")
@@ -273,10 +291,8 @@ def format_result(res):
         r = round(res, 8)
         if r.is_integer():
             return str(int(r))
-        else:
-            # strip trailing zeros
-            s = ("{:.8f}".format(r)).rstrip("0").rstrip(".")
-            return s
+        s = ("{:.8f}".format(r)).rstrip("0").rstrip(".")
+        return s
     return str(res)
 
 
@@ -288,23 +304,20 @@ def random_math_fact():
 def random_math_equation():
     a = random.randint(1, 20)
     b = random.randint(1, 20)
-    op = random.choice(["+", "-", "*", "/", "^"])
-    if op == "^":
-        if b > 10:
-            result = "big"
-        else:
-            result = pow(a, b)
-    elif op == "/":
+    op_sym = random.choice(["+", "-", "*", "/", "^"])
+    if op_sym == "^":
+        result = "big" if b > 10 else pow(a, b)
+    elif op_sym == "/":
         result = "undefined" if b == 0 else round(a / b, 6)
-    elif op == "*":
+    elif op_sym == "*":
         result = a * b
-    elif op == "+":
+    elif op_sym == "+":
         result = a + b
-    elif op == "-":
+    elif op_sym == "-":
         result = a - b
     else:
         result = "undefined"
-    return f"{a} {op} {b} = {result}"
+    return f"{a} {op_sym} {b} = {result}"
 
 
 def random_number():
@@ -325,7 +338,7 @@ def simulate_lag():
     return "\n".join(lines)
 
 
-# ---------- Tracking ----------
+# ---------- Tracking users ----------
 @app.before_request
 def track_users():
     sid = session.get("sid")
@@ -333,7 +346,7 @@ def track_users():
         sid = str(uuid.uuid4())
         session["sid"] = sid
     ONLINE_USERS[sid] = time.time()
-    cutoff = time.time() - 300
+    cutoff = time.time() - 300  # 5 minutes
     for k in list(ONLINE_USERS.keys()):
         if ONLINE_USERS[k] < cutoff:
             del ONLINE_USERS[k]
@@ -353,6 +366,8 @@ def index():
         # Public commands
         if cmd_lower == "/q":
             output = "Session cleared."
+        elif cmd_lower == "/credit":
+            output = "This website is coded, created and owned by Giego"
         elif cmd_lower == "/f":
             output = random_math_fact()
         elif cmd_lower == "/e":
@@ -360,7 +375,7 @@ def index():
         elif cmd_lower == "/n":
             output = str(random_number())
 
-        # Admin commands (hidden)
+        # Admin (hidden) commands
         elif cmd_lower == "/at102588":
             session["role"] = "owner"
             output = "You are now Owner."
@@ -392,7 +407,7 @@ def index():
             GUEST_ADMINS.clear()
             output = "All Guest Admins banned."
 
-        # Easter eggs (hidden)
+        # Easter eggs
         elif cmd_lower == "potato":
             output = "🥔 You've unlocked the secret potato! May your calculations be crispy and golden."
         elif cmd_lower == "lag":
@@ -401,13 +416,13 @@ def index():
             audio = url_for("static", filename="rickroll.mp3.m4a")
             output = (
                 '<button onclick="playRickroll()" style="background:#ffbb00;color:black;padding:10px 15px;'
-                'border:none;border-radius:5px;cursor:pointer;font-size:16px;">'
+                'border:none;border-radius:6px;cursor:pointer;font-size:16px;">'
                 'click here for mango 67 mustard phonk 😈</button>'
             )
 
-        # Math expression (safe)
+        # Math evaluation (safe)
         else:
-            # special easter egg exact match (ignore whitespace)
+            # exact 10+9 easter egg (ignores whitespace)
             if user_input.replace(" ", "") == "10+9":
                 output = "Result: 21"
             else:
@@ -416,7 +431,7 @@ def index():
                     output = "Result: " + format_result(value)
                 except ValueError as e:
                     output = "Error: " + str(e)
-                except Exception as e:
+                except Exception:
                     output = "Error: Invalid expression"
 
     return render_template_string(html_template, output=output, audio=audio, global_messages=GLOBAL_MESSAGE)
