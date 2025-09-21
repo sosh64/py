@@ -1,6 +1,11 @@
+Update 5 - admin/owner system
+Added commands and global messages
+Also added player count
+Date: 2025-09-21
+
 Update 4 - update log
 Added the update log and also added /credit
-also added a global message command for admins.
+Also added a global message command for admins.
 Date: 2025-09-21
 
 Update 3 - 67 Easter Egg 😈
