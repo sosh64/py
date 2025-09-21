@@ -44,16 +44,6 @@ html_template = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Python Calculator</title>
     <style>
-    * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-     }
-    html, body {
-    width: 100%;
-    max-width: 100%;
-    overflow-x: hidden;
-}
         body { font-family: monospace, monospace; background: #f5f5f5; padding: 20px; max-width: 600px; margin: auto; }
         h1 { text-align: center; color: #333; }
         #output { white-space: pre-wrap; background: #fff; border: 1px solid #ddd; padding: 10px; height: 300px; overflow-y: auto; margin-bottom: 10px; }
