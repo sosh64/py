@@ -89,10 +89,6 @@ html_template = """<!DOCTYPE html>
       <b>/f</b> - Random math fact<br>
       <b>/e</b> - Random math equation<br>
       <b>/n</b> - Random number<br>
-      <b>gm</b> - Send admin message (green)<br>
-      <b>/gb</b> - Send guest message (blue)<br>
-      <b>g$</b> - Clear global message<br>
-      <b>8$</b> - Reset admin + global<br>
       <span class="small-note">Check out my TikTok for easter eggs! Made by Giego :D</span>
     </div>
 
