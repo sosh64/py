@@ -1,14 +1,16 @@
-from flask import Flask, request, render_template_string, url_for, session
+from flask import Flask, request, render_template_string, session
 import math
 import random
 import re
 import os
+import uuid
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key-change-me")
 
 # ---------- Global state ----------
 GLOBAL_MESSAGE = ""
+SUPER_ADMIN_ID = None  # Track super admin
 
 # ---------- Facts ----------
 facts = [
@@ -105,7 +107,6 @@ html_template = """<!DOCTYPE html>
     html,body { height:100%; width:100%; font-family: monospace, monospace; background:#f5f5f5; display:flex; justify-content:center; align-items:flex-start; padding:20px; }
     .container { width:100%; max-width:600px; background:#fff; padding:20px; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.1); position:relative; }
     h1 { text-align:center; color:#333; margin-bottom:18px; }
-    .info { font-size:0.9em; color:#666; margin-bottom:12px; line-height:1.4; word-break: break-word; }
     .output-wrap { position:relative; margin-bottom:12px; }
     #global { white-space: pre-wrap; background:#e8ffe8; border:1px solid #88cc88; padding:8px; margin-bottom:8px; border-radius:6px; font-weight:bold; }
     #output { white-space: pre-wrap; background:#f9f9f9; border:1px solid #ddd; padding:12px; height:200px; overflow-y:auto; border-radius:6px; }
@@ -120,7 +121,7 @@ html_template = """<!DOCTYPE html>
       <div id="global">{{ global_message|safe }}</div>
       <div id="output">{{ output|safe or "Welcome to Python Calculator!" }}</div>
     </div>
-    <form method="POST" class="command-area" onsubmit="return true;">
+    <form method="POST">
       <input type="text" name="command" autofocus autocomplete="off" placeholder="Enter command or expression" style="width:100%;padding:12px;margin-bottom:10px;" />
       <button type="submit" style="width:100%;padding:12px;background:#4CAF50;color:white;border:none;border-radius:6px;cursor:pointer;">Calculate</button>
     </form>
@@ -130,41 +131,57 @@ html_template = """<!DOCTYPE html>
 """
 
 # ---------- Routes ----------
+@app.before_request
+def ensure_session_id():
+    if "session_id" not in session:
+        session["session_id"] = str(uuid.uuid4())
+
 @app.route("/", methods=["GET", "POST"])
 def index():
-    global GLOBAL_MESSAGE
+    global GLOBAL_MESSAGE, SUPER_ADMIN_ID
     output = ""
 
     if request.method == "POST":
         user_input = request.form.get("command", "").strip()
         cmd_lower = user_input.lower()
 
-        # Unlock admin
-        if cmd_lower == "/at102588":
-            session["is_admin"] = True
-            output = "You are now admin."
-        # Remove admin + clear global
-        elif cmd_lower == "8$":
-            session.pop("is_admin", None)
+        # --- ADMIN AUTH ---
+        if cmd_lower == "/at102588":  # Owner Admin
+            session["role"] = "owner"
+            SUPER_ADMIN_ID = session["session_id"]
+            output = "You are now OWNER admin."
+        elif cmd_lower == "/at88":  # Guest Admin
+            session["role"] = "guest_admin"
+            output = "You are now GUEST admin."
+
+        # --- OWNER COMMANDS ---
+        elif cmd_lower == "8$" and session.get("role") == "owner":
             GLOBAL_MESSAGE = ""
-            output = "All admins removed and global message cleared."
-        # Clear global
-        elif cmd_lower == "g$" and session.get("is_admin"):
+            session["role"] = None
+            output = "All admins removed and global cleared."
+        elif cmd_lower == "ban$" and session.get("role") == "owner":
+            SUPER_ADMIN_ID = session["session_id"]
+            output = "You are now the only OWNER admin. Others removed."
+        elif cmd_lower == "g$" and session.get("role") == "owner":
             GLOBAL_MESSAGE = ""
             output = "Global message cleared."
-        # Admin global message
-        elif cmd_lower.startswith("gm ") and session.get("is_admin"):
-            text = user_input[3:].strip()
-            if text:
-                GLOBAL_MESSAGE = f"<span class='green'>Giego: {text}</span>"
-                output = "Global message set."
-        # Guest global message
+        elif cmd_lower.startswith("gm ") and session.get("role") == "owner":
+            if SUPER_ADMIN_ID and SUPER_ADMIN_ID != session["session_id"]:
+                output = "Only the super admin can send messages now."
+            else:
+                text = user_input[3:].strip()
+                if text:
+                    GLOBAL_MESSAGE = f"<span class='green'>Giego: {text}</span>"
+                    output = "Global message set."
+
+        # --- GUEST ADMIN COMMANDS ---
         elif cmd_lower.startswith("/gb "):
             text = user_input[4:].strip()
             if text:
                 GLOBAL_MESSAGE = f"<span class='blue'>Guest: {text}</span>"
                 output = "Guest message set."
 
+        # --- NORMAL COMMANDS ---
         elif cmd_lower == "/q":
             output = "Session cleared."
         elif cmd_lower == "/credit":
