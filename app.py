@@ -98,8 +98,7 @@ html_template = """<!DOCTYPE html>
       <b>/f</b> - Random math fact<br>
       <b>/e</b> - Random math equation<br>
       <b>/n</b> - Random number<br>
-      <b>/b</b> - Space beach<br>
-      <span class="small-note">Check out my TikTok for easter eggs! Made by Giego :D</span>
+      <span class="small-note">Check out my TikTok for easter eggs!     Made by Giego :D</span>
     </div>
 
     <div class="output-wrap">
@@ -228,9 +227,6 @@ def index():
             output = random_math_equation()
         elif cmd_lower == "/n":
             output = str(random_number())
-        elif cmd_lower == "/b":
-            # Space beach response (you can expand)
-            output = "🏖️ Welcome to Space Beach — sand, stars, and silly math vibes!"
         elif cmd_lower == "potato":
             output = "🥔 You've unlocked the secret potato! May your calculations be crispy and golden."
         elif cmd_lower == "lag":
