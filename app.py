@@ -172,7 +172,7 @@ def index():
         elif user_input == "lag":
             output = simulate_lag()
         elif user_input == "67":   # 🎵 Rickroll trigger
-            output = "🎶 Never gonna give you up..."
+            output = "click on the play button the hear mango mustard phonk 😈"
             audio = url_for('static', filename='rickroll.mp3.m4a')
         else:
             if user_input.startswith('x=') or user_input.startswith('x ='):
