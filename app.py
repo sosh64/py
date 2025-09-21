@@ -1,10 +1,15 @@
-from flask import Flask, request, render_template_string, url_for
+from flask import Flask, request, render_template_string, url_for, jsonify, session
 import math
 import random
 import re
 import os
 
 app = Flask(__name__)
+# For production, set a strong secret key as an environment variable (Render: SECRET_KEY)
+app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key-change-me")
+
+# In-memory global message (lost on restart)
+GLOBAL_MESSAGE = ""
 
 facts = [
     "Zero is the only number that can't be represented in Roman numerals.",
@@ -49,6 +54,8 @@ html_template = """<!DOCTYPE html>
     .info { font-size:0.9em; color:#666; margin-bottom:12px; line-height:1.4; word-break: break-word; } /* allow wrapping */
     .output-wrap { position:relative; margin-bottom:12px; }
     #output { white-space: pre-wrap; background:#f9f9f9; border:1px solid #ddd; padding:12px; height:200px; overflow-y:auto; border-radius:6px; }
+    /* green global message label */
+    .global-message { color: #2e7d32; font-weight:700; margin-bottom:8px; display:none; }
     .output-pin-btn {
       position:absolute;
       right:10px;
@@ -94,15 +101,19 @@ html_template = """<!DOCTYPE html>
     <h1>Python Calculator</h1>
     <div class="info">
       <strong>Commands:</strong><br>
-      <b>/credit</b> - Show credits<br)
+      <b>/credit</b> - Show credits<br>
       <b>/q</b> - Quit (clears output)<br>
       <b>/f</b> - Random math fact<br>
       <b>/e</b> - Random math equation<br>
       <b>/n</b> - Random number<br>
+      <b>/b</b> - Space beach<br>
       <span class="small-note">Check out my TikTok for easter eggs!     Made by Giego :D</span>
     </div>
 
     <div class="output-wrap">
+      <!-- global label (green) -->
+      <div id="global-label" class="global-message" role="status" aria-live="polite"></div>
+
       <div id="output">{{ output|safe or "Welcome to Python Calculator!" }}</div>
 
       <!-- pinned to bottom-right of the result box (mobile) -->
@@ -118,7 +129,7 @@ html_template = """<!DOCTYPE html>
 
     <form method="POST" class="command-area" onsubmit="return true;">
       <div class="command-row">
-        <input type="text" name="command" autofocus autocomplete="off" placeholder="Enter command or expression" />
+        <input id="cmd-input" type="text" name="command" autofocus autocomplete="off" placeholder="Enter command or expression" />
         <!-- inline updates button for desktop -->
         <a href="{{ url_for('updates') }}" class="link-button" title="View update logs" aria-label="View update logs">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -142,6 +153,30 @@ html_template = """<!DOCTYPE html>
       </script>
     {% endif %}
   </div>
+
+  <script>
+    // Poll /global every 2 seconds and update the green label
+    async function pollGlobal(){
+      try {
+        const res = await fetch('{{ url_for("global_message") }}');
+        if (!res.ok) return;
+        const data = await res.json();
+        const lbl = document.getElementById('global-label');
+        if (data && data.message && data.message.trim().length > 0) {
+          lbl.textContent = "GLOBAL: " + data.message;
+          lbl.style.display = 'block';
+        } else {
+          lbl.textContent = "";
+          lbl.style.display = 'none';
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+    // initial run and interval
+    pollGlobal();
+    setInterval(pollGlobal, 2000);
+  </script>
 </body>
 </html>
 """
@@ -214,15 +249,30 @@ def simulate_lag():
 # ---------- Routes ----------
 @app.route("/", methods=["GET", "POST"])
 def index():
+    global GLOBAL_MESSAGE
     output, audio = "", None
     if request.method == "POST":
         user_input = request.form.get("command", "").strip()
         # normalized lower-only checks reserved for command keywords except math
         cmd_lower = user_input.lower()
 
-        if cmd_lower == "/q":
+        # Admin unlock (type exactly /at102588 to unlock admin for this browser session)
+        if user_input == "/at102588":
+            session['is_admin'] = True
+            output = "Admin unlocked for this browser session."
+        # gm command: only for admins (sets global message)
+        elif cmd_lower.startswith("/gm"):
+            if not session.get('is_admin'):
+                output = "Error: admin required. Enter /at102588 to unlock admin for your session."
+            else:
+                msg = user_input[3:].strip()  # message after /gm
+                # strip surrounding quotes if present
+                if (msg.startswith('"') and msg.endswith('"')) or (msg.startswith("'") and msg.endswith("'")):
+                    msg = msg[1:-1]
+                GLOBAL_MESSAGE = msg  # set (can be empty to clear)
+                output = f"Global message set: {msg}" if msg else "Global message cleared."
+        elif cmd_lower == "/q":
             output = "Session cleared."
-        
         elif cmd_lower == "/credit":
             output = "This website is coded, created and owned by Giego"
         elif cmd_lower == "/f":
@@ -231,6 +281,8 @@ def index():
             output = random_math_equation()
         elif cmd_lower == "/n":
             output = str(random_number())
+        elif cmd_lower == "/b":
+            output = "🏖️ Welcome to Space Beach — sand, stars, and silly math vibes!"
         elif cmd_lower == "potato":
             output = "🥔 You've unlocked the secret potato! May your calculations be crispy and golden."
         elif cmd_lower == "lag":
@@ -249,6 +301,11 @@ def index():
             output = evaluate_expression(user_input)
 
     return render_template_string(html_template, output=output, audio=audio)
+
+@app.route("/global")
+def global_message():
+    # return JSON with current global message
+    return jsonify({"message": GLOBAL_MESSAGE})
 
 @app.route("/updates")
 def updates():
