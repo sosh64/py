@@ -132,7 +132,8 @@ html_template = """
             <b>/q</b> - Quit (clears output)<br>
             <b>/f</b> - Random math fact<br>
             <b>/e</b> - Random math equation<br>
-            <b>/n</b> - Random number<br><br>
+            <b>/n</b> - Random number<br>
+            more<br>
             Check out my TikTok for easter eggs!<br>
             <b>Made by Giego :D</b>
         </div>
@@ -194,6 +195,15 @@ def evaluate_expression(expr):
       # Easter egg for 10 + 9 = 21
     if expr.strip() == "10 + 9":
         return "Result: 21"
+        
+        if expr.strip() == "10+9":
+            return "Result: 21"
+            
+        if expr.strip() == "10 +9":
+            return "Result: 21"
+            
+        if expr.strip() == "10+ 9":
+            return "Result: 21"
 
     try:
         result = eval(expr, {"__builtins__": None}, {
