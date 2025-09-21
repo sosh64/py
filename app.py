@@ -178,12 +178,18 @@ def index():
         user_input = request.form.get("command", "").strip().lower()
 
         # 🎵 Rickroll trigger
-        if user_input == "67":
-            return render_template_string(html_template + f"""
-            <audio autoplay>
-                <source src="{{{{ url_for('static', filename='rickroll.mp3.m4a') }}}}" type="audio/mp4">
-            </audio>
-            """, output="🎶 Never gonna give you up...")
+if user_input.replace(" ", "") == "67":
+    return render_template_string(html_template + f"""
+    <audio id="rickroll" autoplay>
+        <source src="{{{{ url_for('static', filename='rickroll.mp3.m4a') }}}}" type="audio/mp4">
+    </audio>
+    <script>
+      const audio = document.getElementById("rickroll");
+      audio.play().catch(() => {{
+        audio.setAttribute("controls", "true");
+      }});
+    </script>
+    """, output="🎶 Never gonna give you up...")
 
         if user_input == "/q":
             output = "Session cleared."
