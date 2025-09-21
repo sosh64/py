@@ -103,8 +103,6 @@ html_template = """<!DOCTYPE html>
       <b>/f</b> - Random math fact<br>
       <b>/e</b> - Random math equation<br>
       <b>/n</b> - Random number<br>
-      <b>/at102588</b> - Become Owner<br>
-      <b>/at88</b> - Become Guest Admin<br>
       <span class="small-note">Check out my TikTok for easter eggs! Made by Giego :D</span>
     </div>
     <div class="output-wrap">
