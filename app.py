@@ -179,7 +179,7 @@ def index():
             <button onclick="playRickroll()" 
                 style="background:#ffbb00; color:black; padding:10px 15px; 
                        border:none; border-radius:5px; cursor:pointer; font-size:16px;">
-                click here for mango mustard phonk 😈
+                click here for mango 67 mustard phonk 😈
             </button>
             """
         else:
