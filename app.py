@@ -1,9 +1,10 @@
-from flask import Flask, request, render_template_string
+from flask import Flask, request, render_template_string, url_for
 import math
 import random
 import re
 import sys
 import time
+import os
 
 app = Flask(__name__)
 
@@ -149,8 +150,6 @@ html_template = """
 </html>
 """
 
-
-
 def random_math_fact():
     return random.choice(facts)
 
@@ -165,7 +164,6 @@ def random_math_equation():
             base, exponent = map(float, equation.split('^'))
             result = pow(base, exponent)
         else:
-            # For division, handle zero division gracefully
             if op == '/' and b == 0:
                 result = "undefined"
             else:
@@ -192,18 +190,14 @@ def evaluate_expression(expr):
     expr = expr.replace('x', '*')
     expr = re.sub(r'(\d+(\.\d+)?)\s*%', r'(\1/100)', expr)
     expr = handle_power(expr)
-      # Easter egg for 10 + 9 = 21
     if expr.strip() == "10 + 9":
         return "Result: 21"
-        
-        if expr.strip() == "10+9":
-            return "Result: 21"
-            
-        if expr.strip() == "10 +9":
-            return "Result: 21"
-            
-        if expr.strip() == "10+ 9":
-            return "Result: 21"
+    if expr.strip() == "10+9":
+        return "Result: 21"
+    if expr.strip() == "10 +9":
+        return "Result: 21"
+    if expr.strip() == "10+ 9":
+        return "Result: 21"
 
     try:
         result = eval(expr, {"__builtins__": None}, {
@@ -224,7 +218,6 @@ def evaluate_expression(expr):
         return f"Error: {e}"
 
 def simulate_lag():
-    # simulate lag and fake data output (as text)
     fake_data = [
         "[ERROR] Unauthorized access from 127.0.0.1",
         "[WARNING] Math core breached!",
@@ -257,8 +250,13 @@ def index():
             output = "🥔 You've unlocked the secret potato! May your calculations be crispy and golden."
         elif user_input == "lag":
             output = simulate_lag()
+        elif user_input == "67":  # 🎵 Rickroll Easter Egg
+            return render_template_string(html_template + f"""
+            <audio autoplay>
+                <source src="{{{{ url_for('static', filename='rickroll.mp3.m4a') }}}}" type="audio/mp4">
+            </audio>
+            """, output="Never gonna give you up! 🎶")
         else:
-            # Support for x= or x = assignment expressions (from your original)
             if user_input.startswith('x=') or user_input.startswith('x ='):
                 try:
                     rhs = user_input.split('=')[1].strip()
@@ -320,8 +318,6 @@ def index():
                 output = evaluate_expression(user_input)
 
     return render_template_string(html_template, output=output)
-
-import os
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
