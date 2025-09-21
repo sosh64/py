@@ -117,15 +117,6 @@ def evaluate_expression(expr):
       # Easter egg for 10 + 9 = 21
     if expr.strip() == "10 + 9":
         return "Result: 21"
-         
-    if expr.strip() == "10+9":
-        return "Result: 21"
-        
-    if expr.strip() == "10 +9":
-        return "Result: 21"
-        
-    if expr.strip() == "10+ 9":
-        return "Result: 21"
 
     try:
         result = eval(expr, {"__builtins__": None}, {
@@ -242,6 +233,7 @@ def index():
                 output = evaluate_expression(user_input)
 
     return render_template_string(html_template, output=output)
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0', por=8000)
     
