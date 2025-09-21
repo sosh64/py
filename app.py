@@ -221,6 +221,9 @@ def index():
 
         if cmd_lower == "/q":
             output = "Session cleared."
+        
+        elif cmd_lower == "/credit":
+            output = "This website is coded, created and owned by Giego"
         elif cmd_lower == "/f":
             output = random_math_fact()
         elif cmd_lower == "/e":
