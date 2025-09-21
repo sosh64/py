@@ -191,7 +191,7 @@ if user_input.replace(" ", "") == "67":
     </script>
     """, output="🎶 Never gonna give you up...")
 
-        if user_input == "/q":
+          if user_input == "/q":
             output = "Session cleared."
         elif user_input == "/f":
             output = random_math_fact()
