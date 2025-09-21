@@ -127,9 +127,6 @@ def evaluate_expression(expr):
     if expr.strip() == "10+ 9":
         return "Result: 21"
         
-        if expr.strip() == "67":
-  return "want mustard with your mangoes?"
-
     try:
         result = eval(expr, {"__builtins__": None}, {
             "sin": math.sin,
@@ -261,4 +258,4 @@ def index():
     return render_template_string(html_template, output=output)
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=8000)
+app.run(host='0.0.0.0', port=8000)
