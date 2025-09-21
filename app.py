@@ -45,107 +45,45 @@ html_template = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Python Calculator</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        html, body {
-            height: 100%;
-            width: 100%;
-            font-family: monospace, monospace;
-            background-color: #f5f5f5;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            padding: 20px;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 600px;
-            background: #ffffff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 20px;
-        }
-
-        .info {
-            font-size: 0.9em;
-            color: #666;
-            margin-bottom: 15px;
-            line-height: 1.4;
-        }
-
-        #output {
-            white-space: pre-wrap;
-            background: #f9f9f9;
-            border: 1px solid #ddd;
-            padding: 10px;
-            height: 200px;
-            overflow-y: auto;
-            margin-bottom: 15px;
-            border-radius: 4px;
-        }
-
-        form {
-            margin-top: 0;
-        }
-
-        input[type=text] {
-            width: 100%;
-            padding: 12px;
-            font-size: 1.1em;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-
-        button {
-            width: 100%;
-            margin-top: 10px;
-            padding: 12px;
-            font-size: 1em;
-            border: none;
-            border-radius: 4px;
-            background-color: #4CAF50;
-            color: white;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #45a049;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; width: 100%; font-family: monospace, monospace; background-color: #f5f5f5; display: flex; justify-content: center; align-items: flex-start; padding: 20px; }
+        .container { width: 100%; max-width: 600px; background: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #333; margin-bottom: 20px; }
+        .info { font-size: 0.9em; color: #666; margin-bottom: 15px; line-height: 1.4; }
+        #output { white-space: pre-wrap; background: #f9f9f9; border: 1px solid #ddd; padding: 10px; height: 200px; overflow-y: auto; margin-bottom: 15px; border-radius: 4px; }
+        form { margin-top: 0; }
+        input[type=text] { width: 100%; padding: 12px; font-size: 1.1em; border: 1px solid #ccc; border-radius: 4px; }
+        button { width: 100%; margin-top: 10px; padding: 12px; font-size: 1em; border: none; border-radius: 4px; background-color: #4CAF50; color: white; cursor: pointer; }
+        button:hover { background-color: #45a049; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Python Calculator</h1>
-
         <div class="info">
             <strong>Commands:</strong><br>
             <b>/q</b> - Quit (clears output)<br>
             <b>/f</b> - Random math fact<br>
             <b>/e</b> - Random math equation<br>
             <b>/n</b> - Random number<br>
-            <b>67</b> - 🔥 Click to see the secrets 🔥<br>
             more:<br>
             Check out my TikTok for easter eggs!<br>
             <b>Made by Giego :D</b>
         </div>
-
-        <div id="output">{{ output|safe or "Welcome to Python Calculator!" }}</div>
-
+        <div id="output">{{ output or "Welcome to Python Calculator!" }}</div>
         <form method="POST">
             <input type="text" name="command" autofocus autocomplete="off" placeholder="Enter command or expression" />
             <button type="submit">Calculate</button>
         </form>
+        {% if audio %}
+        <audio id="rickroll" autoplay>
+            <source src="{{ audio }}" type="audio/mp4">
+        </audio>
+        <script>
+            const audio = document.getElementById("rickroll");
+            audio.play().catch(() => { audio.setAttribute("controls", "true"); });
+        </script>
+        {% endif %}
     </div>
 </body>
 </html>
@@ -159,7 +97,6 @@ def random_math_equation():
     b = random.randint(1, 20)
     op = random.choice(['+', '-', '*', '/', '^'])
     equation = f"{a} {op} {b}"
-
     try:
         if '^' in equation:
             base, exponent = map(float, equation.split('^'))
@@ -179,8 +116,7 @@ def random_number():
 def handle_power(expression):
     while '^' in expression:
         match_pow = re.search(r'(\d+(\.\d+)?|\([^()]+\))\s*\^\s*(\d+(\.\d+)?|\([^()]+\))', expression)
-        if not match_pow:
-            break
+        if not match_pow: break
         base = match_pow.group(1)
         exponent = match_pow.group(3)
         replacement = f'pow({base}, {exponent})'
@@ -191,23 +127,14 @@ def evaluate_expression(expr):
     expr = expr.replace('x', '*')
     expr = re.sub(r'(\d+(\.\d+)?)\s*%', r'(\1/100)', expr)
     expr = handle_power(expr)
-
-    if expr.strip() in ["10 + 9", "10+9", "10 +9", "10+ 9"]:
+    if expr.strip().replace(" ", "") == "10+9":
         return "Result: 21"
-
     try:
         result = eval(expr, {"__builtins__": None}, {
-            "sin": math.sin,
-            "cos": math.cos,
-            "tan": math.tan,
-            "sqrt": math.sqrt,
-            "log": math.log,
-            "log10": math.log10,
-            "factorial": math.factorial,
-            "pow": pow,
-            "pi": math.pi,
-            "e": math.e,
-            "__name__": "__main__"
+            "sin": math.sin, "cos": math.cos, "tan": math.tan,
+            "sqrt": math.sqrt, "log": math.log, "log10": math.log10,
+            "factorial": math.factorial, "pow": pow,
+            "pi": math.pi, "e": math.e, "__name__": "__main__"
         })
         return f"Result: {result}"
     except Exception as e:
@@ -223,17 +150,15 @@ def simulate_lag():
         "[MATRIX] 0101010101010101 💥",
         "[HACK] Deploying potato virus 🥔...",
     ]
-    lines = []
-    for line in fake_data:
-        lines.append(line)
-    lines.append("💀 System compromised... Just kidding. Back to math! ")
+    lines = fake_data + ["💀 System compromised... Just kidding. Back to math! "]
     return "\n".join(lines)
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    output = ""
+    output, audio = "", None
     if request.method == "POST":
         user_input = request.form.get("command", "").strip().lower()
+
         if user_input == "/q":
             output = "Session cleared."
         elif user_input == "/f":
@@ -246,19 +171,26 @@ def index():
             output = "🥔 You've unlocked the secret potato! May your calculations be crispy and golden."
         elif user_input == "lag":
             output = simulate_lag()
-        elif user_input == "67":
-            # Rickroll Easter Egg with clickbait button
-            output = f"""
-            <button onclick="document.getElementById('rickroll').play(); this.style.display='none';"
-                    style="background:#ff4747; color:white; padding:10px 15px; border:none; border-radius:5px; cursor:pointer; font-size:16px;">
-                🔥 Click here for a surprise 🔥
-            </button>
-            <audio id="rickroll" src="{ url_for('static', filename='rickroll.mp3.m4a') }"></audio>
-            """
+        elif user_input == "67":   # 🎵 Rickroll trigger
+            output = "🎶 Never gonna give you up..."
+            audio = url_for('static', filename='rickroll.mp3.m4a')
         else:
-            output = evaluate_expression(user_input)
+            if user_input.startswith('x=') or user_input.startswith('x ='):
+                try:
+                    rhs = user_input.split('=')[1].strip()
+                    x_val = eval(rhs, {"__builtins__": None}, {
+                        "sin": math.sin, "cos": math.cos, "tan": math.tan,
+                        "sqrt": math.sqrt, "log": math.log, "log10": math.log10,
+                        "factorial": math.factorial, "pow": pow,
+                        "pi": math.pi, "e": math.e, "__name__": "__main__"
+                    })
+                    output = f"x = {x_val}"
+                except Exception as e:
+                    output = f"Error: {e}"
+            else:
+                output = evaluate_expression(user_input)
 
-    return render_template_string(html_template, output=output)
+    return render_template_string(html_template, output=output, audio=audio)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
