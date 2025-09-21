@@ -2,13 +2,13 @@ Update 4 - update log
 Added the update log 
 Date: 2025-09-21
 
-Update 3 - Minor Fixes
-Fixed bugs in the login system and small UI tweaks.
-Date: 2025-09-20
-
-Update 2 - 67 Easter Egg 😈
+Update 3 - 67 Easter Egg 😈
 Entering '67' unlocks a hidden surprise (playable audio).
 Date: 2025-09-19
+
+Update 2 - Minor Fixes
+Fixed bugs in the login system and small UI tweaks.
+Date: 2025-09-20
 
 Update 1 - Initial Release 🚀
 Launched Python Calculator!
