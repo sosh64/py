@@ -75,15 +75,6 @@ html_template = """
             <input type="text" name="command" autofocus autocomplete="off" placeholder="Enter command or expression" />
             <button type="submit">Calculate</button>
         </form>
-        {% if audio %}
-        <audio id="rickroll" autoplay>
-            <source src="{{ audio }}" type="audio/mp4">
-        </audio>
-        <script>
-            const audio = document.getElementById("rickroll");
-            audio.play().catch(() => { audio.setAttribute("controls", "true"); });
-        </script>
-        {% endif %}
     </div>
 </body>
 </html>
@@ -125,7 +116,7 @@ def handle_power(expression):
 
 def evaluate_expression(expr):
     expr = expr.replace('x', '*')
-    expr = re.sub(r'(\d+(\.\d+)?)\s*%', r'(\1/100)', expr)
+    expr = re.sub(r'(\d+(\.\d+)?|\d+)\s*%', r'(\1/100)', expr)
     expr = handle_power(expr)
     if expr.strip().replace(" ", "") == "10+9":
         return "Result: 21"
@@ -155,7 +146,7 @@ def simulate_lag():
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    output, audio = "", None
+    output = ""
     if request.method == "POST":
         user_input = request.form.get("command", "").strip().lower()
 
@@ -172,8 +163,13 @@ def index():
         elif user_input == "lag":
             output = simulate_lag()
         elif user_input == "67":   # 🎵 Rickroll trigger
-            output = "click on the play button the hear mango mustard phonk 😈"
-            audio = url_for('static', filename='rickroll.mp3.m4a')
+            output = f"""
+            <button onclick="document.getElementById('rickroll').play();" 
+                    style="background:#ffbb00; color:black; padding:10px 15px; border:none; border-radius:5px; cursor:pointer; font-size:16px;">
+                click here for mango mustard phonk 😈 
+            </button>
+            <audio id="rickroll" src="{ url_for('static', filename='rickroll.mp3.m4a') }"></audio>
+            """
         else:
             if user_input.startswith('x=') or user_input.startswith('x ='):
                 try:
@@ -190,7 +186,7 @@ def index():
             else:
                 output = evaluate_expression(user_input)
 
-    return render_template_string(html_template, output=output, audio=audio)
+    return render_template_string(html_template, output=output)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
