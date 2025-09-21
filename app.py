@@ -106,15 +106,6 @@ html_template = """<!DOCTYPE html>
       <b>/f</b> - Random math fact<br>
       <b>/e</b> - Random math equation<br>
       <b>/n</b> - Random number<br>
-      <b>/at102588</b> - Become Owner<br>
-      <b>/at88</b> - Become Guest Admin<br>
-      <b>)&</b> - Remove your role<br>
-      <b>gm ...</b> - Global message (Owner)<br>
-      <b>/gb ...</b> - Global message (Guest Admin)<br>
-      <b>g$</b> - Clear global messages (Owner)<br>
-      <b>?pc</b> - Show online users (Owner)<br>
-      <b>ban$</b> - Ban all Guest Admins (Owner)<br>
-      <br>
       <span class="small-note">More commands are hidden as easter eggs (potato, lag, 10+9, 67). Made by Giego :D</span>
     </div>
 
