@@ -133,6 +133,7 @@ html_template = """
             <b>/f</b> - Random math fact<br>
             <b>/e</b> - Random math equation<br>
             <b>/n</b> - Random number<br>
+            <br>
             more<br>
             Check out my TikTok for easter eggs!<br>
             <b>Made by Giego :D</b>
