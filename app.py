@@ -44,34 +44,102 @@ html_template = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Python Calculator</title>
     <style>
-        body { font-family: monospace, monospace; background: #f5f5f5; padding: 20px; max-width: 600px; margin: auto; }
-        h1 { text-align: center; color: #333; }
-        #output { white-space: pre-wrap; background: #fff; border: 1px solid #ddd; padding: 10px; height: 300px; overflow-y: auto; margin-bottom: 10px; }
-        input[type=text] { width: 100%; padding: 10px; font-size: 1.1em; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
-        .info { color: #666; font-size: 0.9em; margin-bottom: 10px; }
-        button { margin-top: 10px; padding: 10px 20px; font-size: 1em; cursor: pointer; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            background: #f5f5f5;
+            font-family: monospace, monospace;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .info {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        #output {
+            white-space: pre-wrap;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 10px;
+            height: 250px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+
+        input[type=text] {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            margin-top: 10px;
+            padding: 12px;
+            font-size: 1em;
+            border: none;
+            border-radius: 4px;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
     </style>
 </head>
 <body>
-    <h1>Python Calculator</h1>
-    <div class="info">
-        Commands:<br>
-        <b>/q</b> - Quit (clears output)<br>
-        <b>/f</b> - Random math fact<br>
-        <b>/e</b> - Random math equation<br>
-        <b>/n</b> - Random number<br>
-        More:<br>
-        check out my tiktok for easter eggs!<br>
-        <b>this was made by Giego :D</b>
+    <div class="container">
+        <h1>Python Calculator</h1>
+        <div class="info">
+            <strong>Commands:</strong><br>
+            <b>/q</b> - Quit (clears output)<br>
+            <b>/f</b> - Random math fact<br>
+            <b>/e</b> - Random math equation<br>
+            <b>/n</b> - Random number<br>
+            <br>
+            More:<br>
+            Check out my TikTok for Easter eggs!<br>
+            <b>Made by Giego :D</b>
+        </div>
+        <div id="output">{{ output }}</div>
+        <form method="POST">
+            <input type="text" name="command" autofocus autocomplete="off" placeholder="Enter command or expression" />
+            <button type="submit">Calculate</button>
+        </form>
     </div>
-    <div id="output">{{ output }}</div>
-    <form method="POST">
-        <input type="text" name="command" autofocus autocomplete="off" placeholder="Enter command or expression" />
-        <button type="submit">Calculate</button>
-    </form>
 </body>
 </html>
 """
+
 
 def random_math_fact():
     return random.choice(facts)
