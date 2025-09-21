@@ -215,6 +215,16 @@ def index():
             session["role"] = "guest"
             GUEST_ADMINS.add(session["sid"])
             output = "You are now Guest Admin."
+        elif cmd == ")&":
+            if session.get("role") == "owner":
+                session.pop("role", None)
+                output = "Your Owner role has been removed."
+            elif session.get("role") == "guest":
+                session.pop("role", None)
+                GUEST_ADMINS.discard(session["sid"])
+                output = "Your Guest Admin role has been removed."
+            else:
+                output = "You have no role to remove."
         elif cmd.startswith("gm ") and session.get("role") == "owner":
             GLOBAL_MESSAGE.append({"sender": "Giego", "text": user_input[3:].strip(), "type": "gm-owner"})
             output = "Global message set by Owner."
