@@ -2,8 +2,6 @@ from flask import Flask, request, render_template_string, url_for
 import math
 import random
 import re
-import sys
-import time
 import os
 
 app = Flask(__name__)
@@ -47,14 +45,67 @@ html_template = """
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html, body { height: 100%; width: 100%; font-family: monospace, monospace; background-color: #f5f5f5; display: flex; justify-content: center; align-items: flex-start; padding: 20px; }
-        .container { width: 100%; max-width: 600px; background: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .container { width: 100%; max-width: 600px; background: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: relative; }
         h1 { text-align: center; color: #333; margin-bottom: 20px; }
         .info { font-size: 0.9em; color: #666; margin-bottom: 15px; line-height: 1.4; }
-        #output { white-space: pre-wrap; background: #f9f9f9; border: 1px solid #ddd; padding: 10px; height: 200px; overflow-y: auto; margin-bottom: 15px; border-radius: 4px; }
-        form { margin-top: 0; }
-        input[type=text] { width: 100%; padding: 12px; font-size: 1.1em; border: 1px solid #ccc; border-radius: 4px; }
-        button { width: 100%; margin-top: 10px; padding: 12px; font-size: 1em; border: none; border-radius: 4px; background-color: #4CAF50; color: white; cursor: pointer; }
+        /* output wrapper to allow button pinned to its bottom-right */
+        .output-wrap { position: relative; margin-bottom: 15px; }
+        #output { white-space: pre-wrap; background: #f9f9f9; border: 1px solid #ddd; padding: 10px; height: 200px; overflow-y: auto; border-radius: 4px; }
+        .output-pin-btn {
+            position: absolute;
+            right: 10px;
+            bottom: 10px;
+            background-color: #000;
+            color: white;
+            display: none; /* shown on mobile via media query */
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.95em;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+        .output-pin-btn svg { stroke: white; }
+
+        input[type=text] { padding: 12px; font-size: 1.1em; border: 1px solid #ccc; border-radius: 4px; flex: 1; }
+        button { padding: 12px; font-size: 1em; border: none; border-radius: 4px; background-color: #4CAF50; color: white; cursor: pointer; }
         button:hover { background-color: #45a049; }
+
+        /* Desktop row with input + inline Updates button */
+        .command-row {
+            display: flex;
+            gap: 10px;
+        }
+        .command-row .link-button {
+            background-color: #000000;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 16px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 1em;
+        }
+        .command-row .link-button:hover {
+            background-color: #333333;
+        }
+        .command-row .link-button svg {
+            stroke: white;
+        }
+
+        /* Mobile: hide inline button, show pin-in-output button */
+        @media (max-width: 768px) {
+            .command-row .link-button {
+                display: none;
+            }
+            .output-pin-btn {
+                display: flex;
+            }
+        }
     </style>
 </head>
 <body>
@@ -70,136 +121,9 @@ html_template = """
             Check out my TikTok for easter eggs!<br>
             <b>Made by Giego :D</b>
         </div>
-        <div id="output">{{ output|safe or "Welcome to Python Calculator!" }}</div>
-        <form method="POST">
-            <input type="text" name="command" autofocus autocomplete="off" placeholder="Enter command or expression" />
-            <button type="submit">Calculate</button>
-        </form>
-        {% if audio %}
-        <audio id="rickroll">
-            <source src="{{ audio }}" type="audio/mp4">
-        </audio>
-        <script>
-            function playRickroll() {
-                const audio = document.getElementById("rickroll");
-                audio.play().catch(() => { alert("Click play to hear it!"); });
-            }
-        </script>
-        {% endif %}
-    </div>
-</body>
-</html>
-"""
 
-def random_math_fact():
-    return random.choice(facts)
+        <!-- output area with an output-pinned button that will appear at the bottom-right of this box on mobile -->
+        <div class="output-wrap">
+            <div id="output">{{ output|safe or "Welcome to Python Calculator!" }}</div>
 
-def random_math_equation():
-    a = random.randint(1, 20)
-    b = random.randint(1, 20)
-    op = random.choice(['+', '-', '*', '/', '^'])
-    equation = f"{a} {op} {b}"
-    try:
-        if '^' in equation:
-            base, exponent = map(float, equation.split('^'))
-            result = pow(base, exponent)
-        else:
-            if op == '/' and b == 0:
-                result = "undefined"
-            else:
-                result = eval(equation.replace('^', '**'))
-    except Exception:
-        result = "undefined"
-    return f"{equation} = {result}"
-
-def random_number():
-    return random.randint(0, 10000)
-
-def handle_power(expression):
-    while '^' in expression:
-        match_pow = re.search(r'(\d+(\.\d+)?|\([^()]+\))\s*\^\s*(\d+(\.\d+)?|\([^()]+\))', expression)
-        if not match_pow: break
-        base = match_pow.group(1)
-        exponent = match_pow.group(3)
-        replacement = f'pow({base}, {exponent})'
-        expression = expression[:match_pow.start()] + replacement + expression[match_pow.end():]
-    return expression
-
-def evaluate_expression(expr):
-    expr = expr.replace('x', '*')
-    expr = re.sub(r'(\d+(\.\d+)?)\s*%', r'(\1/100)', expr)
-    expr = handle_power(expr)
-    if expr.strip().replace(" ", "") == "10+9":
-        return "Result: 21"
-    try:
-        result = eval(expr, {"__builtins__": None}, {
-            "sin": math.sin, "cos": math.cos, "tan": math.tan,
-            "sqrt": math.sqrt, "log": math.log, "log10": math.log10,
-            "factorial": math.factorial, "pow": pow,
-            "pi": math.pi, "e": math.e, "__name__": "__main__"
-        })
-        return f"Result: {result}"
-    except Exception as e:
-        return f"Error: {e}"
-
-def simulate_lag():
-    fake_data = [
-        "[ERROR] Unauthorized access from 127.0.0.1",
-        "[WARNING] Math core breached!",
-        "[INFO] Rebooting π-module...",
-        "[CRITICAL] Fibonacci sequence looping infinitely!",
-        "[TRACE] Injecting golden ratio... █▒▒▒▒▒▒▒▒▒▒",
-        "[MATRIX] 0101010101010101 💥",
-        "[HACK] Deploying potato virus 🥔...",
-    ]
-    lines = fake_data + ["💀 System compromised... Just kidding. Back to math! "]
-    return "\n".join(lines)
-
-@app.route("/", methods=["GET", "POST"])
-def index():
-    output, audio = "", None
-    if request.method == "POST":
-        user_input = request.form.get("command", "").strip().lower()
-
-        if user_input == "/q":
-            output = "Session cleared."
-        elif user_input == "/f":
-            output = random_math_fact()
-        elif user_input == "/e":
-            output = random_math_equation()
-        elif user_input == "/n":
-            output = str(random_number())
-        elif user_input == "potato":
-            output = "🥔 You've unlocked the secret potato! May your calculations be crispy and golden."
-        elif user_input == "lag":
-            output = simulate_lag()
-        elif user_input == "67":   # 🎵 Rickroll trigger with bait text
-            audio = url_for('static', filename='rickroll.mp3.m4a')
-            output = f"""
-            <button onclick="playRickroll()" 
-                style="background:#ffbb00; color:black; padding:10px 15px; 
-                       border:none; border-radius:5px; cursor:pointer; font-size:16px;">
-                click here for mango 67 mustard phonk 😈
-            </button>
-            """
-        else:
-            if user_input.startswith('x=') or user_input.startswith('x ='):
-                try:
-                    rhs = user_input.split('=')[1].strip()
-                    x_val = eval(rhs, {"__builtins__": None}, {
-                        "sin": math.sin, "cos": math.cos, "tan": math.tan,
-                        "sqrt": math.sqrt, "log": math.log, "log10": math.log10,
-                        "factorial": math.factorial, "pow": pow,
-                        "pi": math.pi, "e": math.e, "__name__": "__main__"
-                    })
-                    output = f"x = {x_val}"
-                except Exception as e:
-                    output = f"Error: {e}"
-            else:
-                output = evaluate_expression(user_input)
-
-    return render_template_string(html_template, output=output, audio=audio)
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+            <!-- this button is pinned
