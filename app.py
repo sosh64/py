@@ -77,16 +77,15 @@ html_template = """<!DOCTYPE html>
   display:flex;
   align-items:center;
   justify-content:center;
-  padding:14px;   /* bigger padding = larger button */
+  width:48px;   /* square size */
+  height:48px;  /* same as input height */
   border-radius:8px;
   text-decoration:none;
-  min-width:48px;
-  min-height:48px;
 }
 .link-button svg { 
   stroke:white;
-  width:22px;   /* bigger icon */
-  height:22px;
+  width:20px;
+  height:20px;
 }
 .link-button:hover { background:#222; }
 
