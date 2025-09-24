@@ -71,9 +71,24 @@ html_template = """<!DOCTYPE html>
     .command-area { margin-top: 0; }
     .command-row { display:flex; gap:10px; align-items:center; }
     .command-row input[type=text] { padding:12px; font-size:1.05em; border:1px solid #ccc; border-radius:6px; flex:1; }
-    .link-button { background:#000; color:#fff; display:flex; align-items:center; justify-content:center; gap:8px; padding:10px 12px; border-radius:6px; text-decoration:none; font-size:0.95em; min-width:48px; }
-    .link-button svg { stroke:white; }
-    .link-button:hover { background:#222; }
+    .link-button {
+  background:#000;
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:14px;   /* bigger padding = larger button */
+  border-radius:8px;
+  text-decoration:none;
+  min-width:48px;
+  min-height:48px;
+}
+.link-button svg { 
+  stroke:white;
+  width:22px;   /* bigger icon */
+  height:22px;
+}
+.link-button:hover { background:#222; }
 
     /* Calculate button sits under the input, full-width */
     .calc-button { margin-top:10px; width:100%; padding:12px; font-size:1em; border:none; border-radius:6px; background:#4CAF50; color:white; cursor:pointer; }
