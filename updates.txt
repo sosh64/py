@@ -1,6 +1,7 @@
 Update 5 - admin/owner system
-Added commands and global messages
-Also added player count
+tried adding commands and global messages
+Also and player count massive failure 
+The website went down for several days
 Date: 2025-09-21
 
 Update 4 - update log
