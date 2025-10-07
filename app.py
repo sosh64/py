@@ -108,7 +108,7 @@ html_template = """<!DOCTYPE html>
     <h1>Python Calculator</h1>
     <div class="info">
       <strong>Commands:</strong><br>
-      <b>/credit</b> - Show credits<br)
+      <b>/credit</b> - Show credits<br>
       <b>/q</b> - Quit (clears output)<br>
       <b>/f</b> - Random math fact<br>
       <b>/e</b> - Random math equation<br>
@@ -160,7 +160,6 @@ html_template = """<!DOCTYPE html>
 </html>
 """
 
-# ---------- Calculator helpers (kept from your original) ----------
 def random_math_fact():
     return random.choice(facts)
 
@@ -225,13 +224,11 @@ def simulate_lag():
     lines = fake_data + ["💀 System compromised... Just kidding. Back to math! "]
     return "\n".join(lines)
 
-# ---------- Routes ----------
 @app.route("/", methods=["GET", "POST"])
 def index():
     output, audio = "", None
     if request.method == "POST":
         user_input = request.form.get("command", "").strip()
-        # normalized lower-only checks reserved for command keywords except math
         cmd_lower = user_input.lower()
 
         if cmd_lower == "/q":
@@ -259,7 +256,6 @@ def index():
             </button>
             """
         else:
-            # treat as expression (case-insensitive function names allowed)
             output = evaluate_expression(user_input)
 
     return render_template_string(html_template, output=output, audio=audio)
