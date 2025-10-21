@@ -1,3 +1,8 @@
+Update 6 - proxy idea
+Started working on a proxy feature 
+Link: https://proxy-hqp3.onrender.com
+Date: 2025-10-21
+
 Update 5 - admin/owner system
 tried adding commands and global messages
 Also and player count massive failure 
