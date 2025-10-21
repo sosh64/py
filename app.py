@@ -294,6 +294,7 @@ def updates():
     template = """<!DOCTYPE html>
 <html lang="en">
 <head>
+#bruh why you looking at my code #
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Update Logs</title>
