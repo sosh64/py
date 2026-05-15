@@ -14,9 +14,9 @@ Added the update log and also added /credit
 Also added a global message command for admins.
 Date: 2025-09-21
 
-Update 3 - 67 Easter Egg 😈
+Update 3 - 67 Easter Egg 
 Entering '67' unlocks a hidden surprise (playable audio).
-Date: 2025-09-19
+Date: 2025-09-20
 
 Update 2 - Minor Fixes
 small UI tweaks.
