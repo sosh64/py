@@ -241,7 +241,7 @@ def index():
         elif cmd_lower == "/e":
             output = random_math_equation()
         elif cmd_lower == "1.114403738620311":
-            output = "message me on tiktok and will mr potato ever rot sosh?"
+            output = "message me on tiktok and ask "will mr potato ever rot sosh?"for a lil bit of cash"
         elif cmd_lower == "/n":
             output = str(random_number())
         elif cmd_lower == "potato":
