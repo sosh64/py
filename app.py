@@ -113,8 +113,7 @@ html_template = """<!DOCTYPE html>
       <b>/f</b> - Random math fact<br>
       <b>/e</b> - Random math equation<br>
       <b>/n</b> - Random number<br>
-     </b> try typing my favorite number<br>
-      <span class="small-note">Check out my TikTok for easter eggs!     Made by Giego :D</span>
+      <span class="small-note">try typing my favorite number!     Made by Giego :D</span>
     </div>
 
     <div class="output-wrap">
